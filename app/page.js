@@ -2,6 +2,7 @@
 import { useState } from "react";
 import AuraBackground from "../components/AuraBackground";
 import SmokeLoader from "../components/SmokeLoader";
+import MysticResponse from "../components/MysticResponse"; // Подключаем наш парсер
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("dream"); // 'dream' или 'tarot'
@@ -17,7 +18,6 @@ export default function Home() {
     setShowResult(false);
 
     try {
-      // Стучимся на наш безопасный серверный эндпоинт
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -48,16 +48,16 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen w-full flex flex-col items-center justify-center px-4 overflow-hidden select-none">
-      {/* Наш живой интерактивный фон (Холст №1) */}
+      {/* Живой интерактивный фон */}
       <AuraBackground />
 
-      {/* Эффект дыма при загрузке (Хoldт №2) */}
+      {/* Эффект дыма при загрузке */}
       {isAnalyzing && <SmokeLoader />}
 
       {/* Контентная зона */}
       <div className="relative z-10 w-full max-w-2xl transition-all duration-700">
         
-        {/* Шапка (скрывается при просмотре результата) */}
+        {/* Шапка */}
         {!showResult && !isAnalyzing && (
           <div className="text-center mb-8">
             <h1 className="text-4xl md:text-5xl font-serif tracking-widest text-slate-100 mb-3 drop-shadow-md">
@@ -72,7 +72,6 @@ export default function Home() {
         {/* Экран ввода данных */}
         {!showResult && !isAnalyzing && (
           <div className="bg-void/40 backdrop-blur-md border border-slate-800/50 p-6 rounded-2xl shadow-aura-glow transition-all duration-500">
-            {/* Переключатель вкладок */}
             <div className="flex border-b border-slate-800/80 mb-6">
               <button
                 onClick={() => setActiveTab("dream")}
@@ -96,7 +95,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Текстовое поле */}
             <textarea
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
@@ -108,7 +106,6 @@ export default function Home() {
               className="w-full h-40 bg-void/60 text-slate-200 placeholder-slate-600 border border-slate-800 rounded-xl p-4 text-sm focus:outline-none focus:border-aura/60 resize-none transition-all"
             />
 
-            {/* Главная кнопка действия */}
             <button
               onClick={handleAnalyze}
               disabled={!inputText.trim()}
@@ -119,12 +116,12 @@ export default function Home() {
           </div>
         )}
 
-        {/* Экран выдачи мистического результата от Yandex GPT */}
+        {/* Экран выдачи результата с интеграцией нашего парсера */}
         {showResult && !isAnalyzing && (
           <div className="bg-void/30 backdrop-blur-lg border border-purple-900/30 p-6 md:p-8 rounded-2xl shadow-aura-glow max-h-[75vh] overflow-y-auto">
-            <div className="text-slate-300 text-sm md:text-base leading-relaxed space-y-4 whitespace-pre-wrap font-light">
-              {aiResponse}
-            </div>
+            
+            {/* ТУТ ИЗМЕНЕНИЕ: Заменили сырой текст на красивый компонент-парсер */}
+            <MysticResponse text={aiResponse} />
 
             <button
               onClick={handleReset}
