@@ -2,7 +2,8 @@
 import { useState } from "react";
 import AuraBackground from "../components/AuraBackground";
 import SmokeLoader from "../components/SmokeLoader";
-import MysticResponse from "../components/MysticResponse"; // Подключаем наш парсер
+import MysticResponse from "../components/MysticResponse";
+import ShadowPassport from "../components/ShadowPassport"; // Импортируем Паспорт Тени
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("dream"); // 'dream' или 'tarot'
@@ -57,7 +58,7 @@ export default function Home() {
       {/* Контентная зона */}
       <div className="relative z-10 w-full max-w-2xl transition-all duration-700">
         
-        {/* Шапка */}
+        {/* Шапка приложения */}
         {!showResult && !isAnalyzing && (
           <div className="text-center mb-8">
             <h1 className="text-4xl md:text-5xl font-serif tracking-widest text-slate-100 mb-3 drop-shadow-md">
@@ -116,13 +117,17 @@ export default function Home() {
           </div>
         )}
 
-        {/* Экран выдачи результата с интеграцией нашего парсера */}
+        {/* Экран выдачи мистического результата */}
         {showResult && !isAnalyzing && (
           <div className="bg-void/30 backdrop-blur-lg border border-purple-900/30 p-6 md:p-8 rounded-2xl shadow-aura-glow max-h-[75vh] overflow-y-auto">
             
-            {/* ТУТ ИЗМЕНЕНИЕ: Заменили сырой текст на красивый компонент-парсер */}
+            {/* 1. Красивый структурированный разбор */}
             <MysticResponse text={aiResponse} />
 
+            {/* 2. НОВОЕ: Виральная карта «Паспорт Тени» для скриншотов */}
+            <ShadowPassport text={aiResponse} type={activeTab} />
+
+            {/* Кнопка сброса */}
             <button
               onClick={handleReset}
               className="w-full mt-8 border border-slate-800 hover:border-aura/40 text-slate-400 hover:text-slate-200 py-2.5 rounded-xl text-xs tracking-widest uppercase font-light transition-all duration-300"
