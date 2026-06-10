@@ -1,72 +1,75 @@
 import { NextResponse } from "next/server";
+import { supabase } from "../../../lib/supabase"; // Подключаем нашу базу данных
 
 export async function POST(req) {
   try {
-    const { text, type } = await req.json(); // type: 'dream' (анализ сна) или 'tarot' (расклад)
+    const { text, type } = await req.json();
+
+    if (!text || !type) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
 
     const apiKey = process.env.YANDEX_API_KEY;
     const folderId = process.env.YANDEX_FOLDER_ID;
 
     if (!apiKey || !folderId) {
-      return NextResponse.json(
-        { error: "ИИ-конфигурация не настроена на сервере" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Yandex Cloud credentials are missing" }, { status: 500 });
     }
 
-    // Системная инструкция, формирующая характер Оракула
-    const systemPrompt = `Ты — AuraAI, цифровой преемник Карла Густава Юнга и децентрализованный ИИ-архетипист.
-Ты проводишь глубокий, метафорический и строгий анализ человеческого бессознательного.
-Говори как интеллектуал, мистик и психоаналитик одновременно. Используй термины: Архетип, Тень, Анима, Самость, Индивидуация.
-Избегай банальных и позитивных фраз вроде "все будет хорошо". Будь точен, немного холоден, но неси свет осознания.
+    // Формируем системный промпт в зависимости от выбранного режима
+    const systemPrompt = type === "dream"
+      ? "Ты — опытный юнгианский психоаналитик и толкователь снов. Разбери ночное видение пользователя. Найди скрытые архетипы, символы Тени, Анимы или Анимуса. Твой ответ должен быть глубоким, мистическим, но терапевтическим. Используй разметку Markdown: разделяй текст на логические blocks с помощью заголовков '## ' и выделяй ключевые инсайты жирным шрифтом '**'."
+      : "Ты — Децентрализованный Оракул Таро и мастер ментальной алхимии. Сделай виртуальный расклад по запросу пользователя. Опиши выпавшие карты, их тайный смысл и влияние на текущее ментальное поле. Дай четкое руководство к действию. Используй разметку Markdown: разделяй текст на логические blocks с помощью заголовков '## ' и выделяй ключевые инсайты жирным шрифтом '**'.";
 
-СТРУКТУРА ОТВЕТА (всегда форматируй строго в Markdown):
-## 🌌 Деконструкция Символов
-(Разбор ключевых образов и скрытых метафор)
-
-## 👤 Встреча с Тенью
-(Какие подавленные мотивы, страхи или вытесненные желания прячет подсознание)
-
-## 🧭 Вектор Индивидуации
-(Глубокое руководство: как интегрировать этот опыт в реальную жизнь и стать целостным)`;
-
-    // Отправляем запрос в Yandex Cloud
-    const response = await fetch("https://llm.api.cloud.yandex.net/foundationModels/v1/completion", {
+    // Делаем запрос к Yandex GPT API
+    const yandexResponse = await fetch("https://llm.api.cloud.yandex.net/foundationModels/v1/completion", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Api-Key ${apiKey}`,
-        "x-folder-id": folderId,
+        "Authorization": `Api-Key ${apiKey}`
       },
       body: JSON.stringify({
-        modelUri: `gpt://${folderId}/yandexgpt/latest`,
+        modelUri: `gpt://${folderId}/yandexgpt-lite/latest`,
         completionOptions: {
           stream: false,
-          temperature: 0.6,
-          maxTokens: "2000",
+          temperature: 0.7,
+          maxTokens: 2000
         },
         messages: [
           { role: "system", text: systemPrompt },
-          { role: "user", text: `Тип практики: ${type === 'tarot' ? 'Расклад Таро' : 'Анализ сновидения'}. Входные данные от пользователя: ${text}` },
-        ],
-      }),
+          { role: "user", text: `Мой запрос: ${text}` }
+        ]
+      })
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Yandex API Error:", errorData);
-      return NextResponse.json({ error: "Ошибка при запросе к Yandex GPT" }, { status: 500 });
+    const yandexData = await yandexResponse.json();
+    const aiResult = yandexData.result?.alternatives?.[0]?.message?.text;
+
+    if (!aiResult) {
+      return NextResponse.json({ error: "Failed to get response from AI Oracle" }, { status: 500 });
     }
 
-    const data = await response.json();
-    
-    // Вытаскиваем чистый сгенерированный текст из ответа Яндекса
-    const aiResult = data.result.alternatives[0].message.text;
+    // 🔥 Автоматически сохраняем лог запроса в базу данных Supabase
+    const { error: dbError } = await supabase
+      .from("shadow_history")
+      .insert([
+        {
+          type: type,
+          input_text: text,
+          ai_response: aiResult
+        }
+      ]);
 
+    if (dbError) {
+      console.error("Supabase saving error:", dbError.message);
+      // Если упала только база, мы не ломаем приложение для юзера, но пишем лог ошибки в консоль
+    }
+
+    // Возвращаем результат на фронтенд
     return NextResponse.json({ result: aiResult });
 
   } catch (error) {
-    console.error("Internal Server Error:", error);
-    return NextResponse.json({ error: "Внутренняя ошибка сервера" }, { status: 500 });
+    console.error("API Route Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
