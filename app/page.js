@@ -4,7 +4,7 @@ import AuraBackground from "../components/AuraBackground";
 import SmokeLoader from "../components/SmokeLoader";
 import MysticResponse from "../components/MysticResponse";
 import ShadowPassport from "../components/ShadowPassport";
-import ShadowArchive from "../components/ShadowArchive"; // Импортируем архив
+import ShadowArchive from "../components/ShadowArchive";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("dream");
@@ -20,11 +20,18 @@ export default function Home() {
     setIsAnalyzing(true);
     setShowResult(false);
 
+    // Достаем или генерируем анонимный ID сессии перед отправкой
+    let sessionId = localStorage.getItem("aura_session_id");
+    if (!sessionId) {
+      sessionId = "_" + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem("aura_session_id", sessionId);
+    }
+
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: inputText, type: activeTab }),
+        body: JSON.stringify({ text: inputText, type: activeTab, sessionId }), 
       });
 
       const data = await response.json();
@@ -89,7 +96,7 @@ export default function Home() {
                     activeTab === "tarot"
                       ? "text-aura border-b-2 border-aura font-medium"
                       : "text-slate-500 hover:text-slate-400"
-                }`}
+                  }`}
                 >
                   🎴 Расклад Таро
                 </button>
@@ -115,7 +122,7 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Выводим архив записей под формой */}
+            {/* Выводим приватный архив записей под формой */}
             <ShadowArchive refreshTrigger={refreshHistory} />
           </>
         )}
