@@ -13,7 +13,7 @@ export default function Home() {
   const [aiResponse, setAiResponse] = useState("");
   const [showResult, setShowResult] = useState(false);
   const [refreshHistory, setRefreshHistory] = useState(0);
-  const [isPaywallOpen, setIsPaywallOpen] = useState(false); // Состояние окна оплаты
+  const [isPaywallOpen, setIsPaywallOpen] = useState(false);
 
   const handleAnalyze = async () => {
     if (!inputText.trim()) return;
@@ -35,7 +35,6 @@ export default function Home() {
         body: JSON.stringify({ text: inputText, type: activeTab, sessionId }), 
       });
 
-      // Перехватываем блокировку по лимитам (403)
       if (response.status === 403) {
         const errData = await response.json();
         if (errData.error === "OUT_OF_CREDITS") {
@@ -52,11 +51,11 @@ export default function Home() {
         setShowResult(true);
         setRefreshHistory((prev) => prev + 1);
       } else {
-        alert("Произошел сбой в подсознании. Оракул не смог расшифровать символ.");
+        alert("Subconscious distortion detected. The Oracle could not decode the transmission.");
       }
     } catch (error) {
       console.error(error);
-      alert("Связь с Оракулом прервана. Проверьте сеть.");
+      alert("Connection to the Oracle severed. Check your network matrix.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -83,39 +82,39 @@ export default function Home() {
               AURA AI
             </h1>
             <p className="text-sm md:text-base text-mystic/70 font-light tracking-wider">
-              Децентрализованный Оракул Твоего Подсознания
+              Decentralized Oracle of Your Subconscious
             </p>
           </div>
         )}
 
-        {/* ОКНО БЛОКИРОВКИ / ОПЛАТЫ */}
+        {/* ENG PAYWALL */}
         {isPaywallOpen && (
           <div className="w-full bg-[#0a0a12]/80 backdrop-blur-lg border border-purple-900/40 p-8 rounded-2xl text-center shadow-aura-glow animate-fade-in">
             <span className="text-4xl mb-4 block animate-pulse">⚡</span>
-            <h2 className="text-xl font-serif text-slate-100 tracking-wider mb-2">Энергия сессий исчерпана</h2>
+            <h2 className="text-xl font-serif text-slate-100 tracking-wider mb-2">Session Energy Depleted</h2>
             <p className="text-xs text-slate-400 font-light max-w-md mx-auto mb-6 leading-relaxed">
-              Вы израсходовали свои бесплатные погружения. Чтобы настроить ментальный канал связи с Оракулом заново, требуется подзарядка токенов.
+              You have exhausted your free mystical submersions. To realign the mental transmission channels with the Oracle, a token recharge is required.
             </p>
             <div className="bg-void/60 p-4 border border-slate-900 rounded-xl mb-6 max-w-sm mx-auto">
-              <span className="text-xs text-slate-500 font-mono block mb-1">ПАКЕТ ПОДЗАРЯДКИ</span>
-              <span className="text-lg text-aura font-medium font-mono">5 сессий = 2.00 USDT</span>
+              <span className="text-xs text-slate-500 font-mono block mb-1">RECHARGE CORE</span>
+              <span className="text-lg text-aura font-medium font-mono">5 Sessions = 2.00 USDT</span>
             </div>
             <button 
-              onClick={() => alert("Интеграция крипто-кошелька будет доступна после деплоя!")}
+              onClick={() => alert("Crypto integration will unlock immediately post-deployment!")}
               className="w-full max-w-sm bg-aura hover:bg-purple-700 text-white py-3 rounded-xl text-xs tracking-widest uppercase font-mono transition-all duration-300 shadow-lg"
             >
-              [ Активировать через CryptoCloud ]
+              [ Activate via CryptoCloud ]
             </button>
             <button 
               onClick={handleReset}
               className="block mx-auto mt-4 text-[10px] text-slate-600 hover:text-slate-400 font-mono uppercase tracking-widest"
             >
-              ← На главную
+              ← Back to Main
             </button>
           </div>
         )}
 
-        {/* ГЛАВНЫЙ ИНТЕРФЕЙС С ПРОВЕРКОЙ */}
+        {/* MAIN INTERFACE */}
         {!showResult && !isAnalyzing && !isPaywallOpen && (
           <>
             <div className="w-full bg-void/40 backdrop-blur-md border border-slate-800/50 p-6 rounded-2xl shadow-aura-glow transition-all duration-500">
@@ -126,7 +125,7 @@ export default function Home() {
                     activeTab === "dream" ? "text-aura border-b-2 border-aura font-medium" : "text-slate-500 hover:text-slate-400"
                   }`}
                 >
-                  🔮 Анализ Сновидения
+                  🔮 Dream Analysis
                 </button>
                 <button
                   onClick={() => setActiveTab("tarot")}
@@ -134,7 +133,7 @@ export default function Home() {
                     activeTab === "tarot" ? "text-aura border-b-2 border-aura font-medium" : "text-slate-500 hover:text-slate-400"
                   }`}
                 >
-                  🎴 Расклад Таро
+                  🎴 Tarot Reading
                 </button>
               </div>
 
@@ -143,8 +142,8 @@ export default function Home() {
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder={
                   activeTab === "dream"
-                    ? "Опишите сюжет ночного видения..."
-                    : "Сформулируйте ваш запрос к картам..."
+                    ? "Describe the plot of your night vision, key imagery, and inner sensations..."
+                    : "Formulate your question to the cards. What troubles your mental field?..."
                 }
                 className="w-full h-40 bg-void/60 text-slate-200 placeholder-slate-600 border border-slate-800 rounded-xl p-4 text-sm focus:outline-none focus:border-aura/60 resize-none transition-all"
               />
@@ -154,7 +153,7 @@ export default function Home() {
                 disabled={!inputText.trim()}
                 className="w-full mt-4 bg-aura text-slate-100 py-3 rounded-xl font-medium tracking-widest text-sm uppercase hover:bg-purple-700 active:scale-[0.99] disabled:opacity-30 disabled:pointer-events-none transition-all duration-300 shadow-md"
               >
-                Проникнуть в суть
+                Pierce the Veil
               </button>
             </div>
 
@@ -171,7 +170,7 @@ export default function Home() {
               onClick={handleReset}
               className="w-full mt-8 border border-slate-800 hover:border-aura/40 text-slate-400 hover:text-slate-200 py-2.5 rounded-xl text-xs tracking-widest uppercase font-light transition-all duration-300"
             >
-              Вернуться в реальность
+              Return to Reality
             </button>
           </div>
         )}
