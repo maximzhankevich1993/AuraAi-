@@ -12,15 +12,16 @@ export default function Home() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiResponse, setAiResponse] = useState("");
   const [showResult, setShowResult] = useState(false);
-  const [refreshHistory, setRefreshHistory] = useState(0); // Триггер обновления архива
+  const [refreshHistory, setRefreshHistory] = useState(0);
+  const [isPaywallOpen, setIsPaywallOpen] = useState(false); // Состояние окна оплаты
 
   const handleAnalyze = async () => {
     if (!inputText.trim()) return;
 
     setIsAnalyzing(true);
     setShowResult(false);
+    setIsPaywallOpen(false);
 
-    // Достаем или генерируем анонимный ID сессии перед отправкой
     let sessionId = localStorage.getItem("aura_session_id");
     if (!sessionId) {
       sessionId = "_" + Math.random().toString(36).substr(2, 9);
@@ -34,12 +35,22 @@ export default function Home() {
         body: JSON.stringify({ text: inputText, type: activeTab, sessionId }), 
       });
 
+      // Перехватываем блокировку по лимитам (403)
+      if (response.status === 403) {
+        const errData = await response.json();
+        if (errData.error === "OUT_OF_CREDITS") {
+          setIsPaywallOpen(true);
+          setIsAnalyzing(false);
+          return;
+        }
+      }
+
       const data = await response.json();
 
       if (data.result) {
         setAiResponse(data.result);
         setShowResult(true);
-        setRefreshHistory((prev) => prev + 1); // Обновляем список истории в фоне
+        setRefreshHistory((prev) => prev + 1);
       } else {
         alert("Произошел сбой в подсознании. Оракул не смог расшифровать символ.");
       }
@@ -55,6 +66,7 @@ export default function Home() {
     setInputText("");
     setAiResponse("");
     setShowResult(false);
+    setIsPaywallOpen(false);
   };
 
   return (
@@ -76,16 +88,42 @@ export default function Home() {
           </div>
         )}
 
-        {!showResult && !isAnalyzing && (
+        {/* ОКНО БЛОКИРОВКИ / ОПЛАТЫ */}
+        {isPaywallOpen && (
+          <div className="w-full bg-[#0a0a12]/80 backdrop-blur-lg border border-purple-900/40 p-8 rounded-2xl text-center shadow-aura-glow animate-fade-in">
+            <span className="text-4xl mb-4 block animate-pulse">⚡</span>
+            <h2 className="text-xl font-serif text-slate-100 tracking-wider mb-2">Энергия сессий исчерпана</h2>
+            <p className="text-xs text-slate-400 font-light max-w-md mx-auto mb-6 leading-relaxed">
+              Вы израсходовали свои бесплатные погружения. Чтобы настроить ментальный канал связи с Оракулом заново, требуется подзарядка токенов.
+            </p>
+            <div className="bg-void/60 p-4 border border-slate-900 rounded-xl mb-6 max-w-sm mx-auto">
+              <span className="text-xs text-slate-500 font-mono block mb-1">ПАКЕТ ПОДЗАРЯДКИ</span>
+              <span className="text-lg text-aura font-medium font-mono">5 сессий = 2.00 USDT</span>
+            </div>
+            <button 
+              onClick={() => alert("Интеграция крипто-кошелька будет доступна после деплоя!")}
+              className="w-full max-w-sm bg-aura hover:bg-purple-700 text-white py-3 rounded-xl text-xs tracking-widest uppercase font-mono transition-all duration-300 shadow-lg"
+            >
+              [ Активировать через CryptoCloud ]
+            </button>
+            <button 
+              onClick={handleReset}
+              className="block mx-auto mt-4 text-[10px] text-slate-600 hover:text-slate-400 font-mono uppercase tracking-widest"
+            >
+              ← На главную
+            </button>
+          </div>
+        )}
+
+        {/* ГЛАВНЫЙ ИНТЕРФЕЙС С ПРОВЕРКОЙ */}
+        {!showResult && !isAnalyzing && !isPaywallOpen && (
           <>
             <div className="w-full bg-void/40 backdrop-blur-md border border-slate-800/50 p-6 rounded-2xl shadow-aura-glow transition-all duration-500">
               <div className="flex border-b border-slate-800/80 mb-6">
                 <button
                   onClick={() => setActiveTab("dream")}
                   className={`flex-1 pb-3 text-sm tracking-widest uppercase transition-all ${
-                    activeTab === "dream"
-                      ? "text-aura border-b-2 border-aura font-medium"
-                      : "text-slate-500 hover:text-slate-400"
+                    activeTab === "dream" ? "text-aura border-b-2 border-aura font-medium" : "text-slate-500 hover:text-slate-400"
                   }`}
                 >
                   🔮 Анализ Сновидения
@@ -93,9 +131,7 @@ export default function Home() {
                 <button
                   onClick={() => setActiveTab("tarot")}
                   className={`flex-1 pb-3 text-sm tracking-widest uppercase transition-all ${
-                    activeTab === "tarot"
-                      ? "text-aura border-b-2 border-aura font-medium"
-                      : "text-slate-500 hover:text-slate-400"
+                    activeTab === "tarot" ? "text-aura border-b-2 border-aura font-medium" : "text-slate-500 hover:text-slate-400"
                   }`}
                 >
                   🎴 Расклад Таро
@@ -107,8 +143,8 @@ export default function Home() {
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder={
                   activeTab === "dream"
-                    ? "Опишите сюжет ночного видения, ключевые образы и ваши ощущения..."
-                    : "Сформулируйте ваш запрос к картам. Что тревожит ваше ментальное поле?..."
+                    ? "Опишите сюжет ночного видения..."
+                    : "Сформулируйте ваш запрос к картам..."
                 }
                 className="w-full h-40 bg-void/60 text-slate-200 placeholder-slate-600 border border-slate-800 rounded-xl p-4 text-sm focus:outline-none focus:border-aura/60 resize-none transition-all"
               />
@@ -122,7 +158,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Выводим приватный архив записей под формой */}
             <ShadowArchive refreshTrigger={refreshHistory} />
           </>
         )}
