@@ -14,9 +14,19 @@ export default function ShadowArchive({ refreshTrigger }) {
   const fetchHistory = async () => {
     try {
       setLoading(true);
+      
+      // Получаем или создаем уникальный ID для текущего браузера
+      let sessionId = localStorage.getItem("aura_session_id");
+      if (!sessionId) {
+        sessionId = "_" + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem("aura_session_id", sessionId);
+      }
+
+      // Тянем из базы только записи этого пользователя
       const { data, error } = await supabase
         .from("shadow_history")
         .select("*")
+        .eq("session_id", sessionId) // Строгая фильтрация по сессии
         .order("created_at", { ascending: false })
         .limit(5);
 
@@ -72,7 +82,7 @@ export default function ShadowArchive({ refreshTrigger }) {
         ))}
       </div>
 
-      {/* Модальное окно для чтения старых записей */}
+      {/* Модалка */}
       {selectedItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
           <div className="bg-[#09090f] border border-purple-900/30 p-6 rounded-2xl max-w-xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
