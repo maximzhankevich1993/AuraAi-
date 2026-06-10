@@ -1,0 +1,22 @@
+{
+  "theme_color": "#050509",
+  "background_color": "#050509",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "name": "AuraAI — The Dream Oracle",
+  "short_name": "AuraAI",
+  "description": "AI-powered dream analysis and cyber-tarot matrix",
+  "icons": [
+    {
+      "src": "/aura-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/aura-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
