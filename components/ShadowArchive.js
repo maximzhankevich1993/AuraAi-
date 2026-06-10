@@ -14,19 +14,16 @@ export default function ShadowArchive({ refreshTrigger }) {
   const fetchHistory = async () => {
     try {
       setLoading(true);
-      
-      // Получаем или создаем уникальный ID для текущего браузера
       let sessionId = localStorage.getItem("aura_session_id");
       if (!sessionId) {
         sessionId = "_" + Math.random().toString(36).substr(2, 9);
         localStorage.setItem("aura_session_id", sessionId);
       }
 
-      // Тянем из базы только записи этого пользователя
       const { data, error } = await supabase
         .from("shadow_history")
         .select("*")
-        .eq("session_id", sessionId) // Строгая фильтрация по сессии
+        .eq("session_id", sessionId)
         .order("created_at", { ascending: false })
         .limit(5);
 
@@ -41,8 +38,8 @@ export default function ShadowArchive({ refreshTrigger }) {
 
   if (loading) {
     return (
-      <div className="mt-12 text-center text-xs text-mystic/40 tracking-widest uppercase animate-pulse">
-        Синхронизация с хрониками Акаши...
+      <div className="mt-12 text-center text-xs text-mystic/40 tracking-widest uppercase animate-pulse font-mono">
+        Synchronizing with Akashic Chronicles...
       </div>
     );
   }
@@ -52,7 +49,7 @@ export default function ShadowArchive({ refreshTrigger }) {
   return (
     <div className="mt-12 w-full max-w-2xl animate-fade-in px-2">
       <h3 className="text-sm font-serif tracking-widest text-aura uppercase mb-4 text-center">
-        📜 Архив ваших погружений
+        📜 Your Submersion Archive
       </h3>
       
       <div className="space-y-3">
@@ -71,7 +68,7 @@ export default function ShadowArchive({ refreshTrigger }) {
                   {item.input_text}
                 </p>
                 <span className="text-[10px] text-slate-600 font-mono">
-                  {new Date(item.created_at).toLocaleDateString("ru-RU")}
+                  {new Date(item.created_at).toLocaleDateString("en-US")}
                 </span>
               </div>
             </div>
@@ -82,31 +79,31 @@ export default function ShadowArchive({ refreshTrigger }) {
         ))}
       </div>
 
-      {/* Модалка */}
+      {/* Modal */}
       {selectedItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
           <div className="bg-[#09090f] border border-purple-900/30 p-6 rounded-2xl max-w-xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
               <h4 className="text-xs font-mono tracking-widest uppercase text-aura">
-                Запись от {new Date(selectedItem.created_at).toLocaleDateString("ru-RU")}
+                Record from {new Date(selectedItem.created_at).toLocaleDateString("en-US")}
               </h4>
               <button
                 onClick={() => setSelectedItem(null)}
                 className="text-slate-500 hover:text-slate-200 font-mono text-sm"
               >
-                [закрыть]
+                [close]
               </button>
             </div>
             
             <div className="space-y-4">
               <div>
-                <span className="text-[10px] text-slate-500 uppercase font-mono">Ваш запрос:</span>
+                <span className="text-[10px] text-slate-500 uppercase font-mono">Your Request:</span>
                 <p className="text-sm text-slate-300 italic mt-1 bg-void/40 p-3 rounded-lg border border-slate-900">
-                  «{selectedItem.input_text}»
+                  “{selectedItem.input_text}”
                 </p>
               </div>
               <div>
-                <span className="text-[10px] text-slate-500 uppercase font-mono">Вердикт Оракула:</span>
+                <span className="text-[10px] text-slate-500 uppercase font-mono">Oracle Verdict:</span>
                 <div className="text-sm text-slate-300 leading-relaxed mt-2 whitespace-pre-wrap font-light">
                   {selectedItem.ai_response}
                 </div>
